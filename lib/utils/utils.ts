@@ -20,3 +20,28 @@ export function isHex(str) {
     return false;
   }
 }
+
+export function decodeRuneId(
+  runeId: string,
+): {
+  block: number;
+  tx: number;
+} {
+  let arr = runeId.split(":");
+  if (arr.length != 2) {
+    throw 'invalid runid, runid must be blockNumber:txNumber format';
+  }
+  const block = parseInt(arr[0]);
+  if (isNaN(block) || block < 0 ) {
+    throw 'invalid runid blockNumber';
+  }
+  const tx = parseInt(arr[1]);
+  if (isNaN(tx) || tx < 0 ) {
+    throw 'invalid runid txNumber';
+  }
+  return {
+    block,
+    tx,
+  };
+}
+

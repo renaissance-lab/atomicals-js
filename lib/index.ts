@@ -418,6 +418,22 @@ export class Atomicals implements APIInterface {
     }
   }
 
+  async mintDftRuneInteractive(options: BaseRequestOptions, address: string, ticker: string, WIF: string,runeBlockNumber: number, runeTxNumber: number, mineCurrentBitwork?: boolean): Promise<CommandResultInterface> {
+    try {
+      await this.electrumApi.open();
+      const command: CommandInterface = new MintInteractiveDftCommand(this.electrumApi, options, address, ticker, WIF, mineCurrentBitwork);
+      return await command.run();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.toString(),
+        error
+      }
+    } finally {
+      this.electrumApi.close();
+    }
+  }
+
   async awaitUtxo(address: string, amount: number): Promise<CommandResultInterface> {
     try {
       await this.electrumApi.open();

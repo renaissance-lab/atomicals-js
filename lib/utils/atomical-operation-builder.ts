@@ -245,6 +245,8 @@ export class AtomicalOperationBuilder {
         value: number;
     }> = [];
 
+    private additionalOpReturnScript: Buffer = Buffer.alloc(0);
+
     constructor(private options: AtomicalOperationBuilderOptions) {
         if (!this.options) {
             throw new Error("Options required");
@@ -508,6 +510,10 @@ export class AtomicalOperationBuilder {
      */
     addOutput(output: { address: string; value: number }) {
         this.additionalOutputs.push(output);
+    }
+
+    setOpReturnOutput(script: Buffer ) {
+        this.additionalOpReturnScript = script
     }
 
     isEmpty(obj) {
@@ -965,6 +971,12 @@ export class AtomicalOperationBuilder {
             if (performBitworkForRevealTx) {
                 psbt.addOutput({
                     script: embed.output!,
+                    value: 0,
+                });
+            }
+            if (this.additionalOpReturnScript.length > 0) {
+                psbt.addOutput({
+                    script: this.additionalOpReturnScript,
                     value: 0,
                 });
             }

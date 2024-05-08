@@ -14,6 +14,7 @@ import { toOutputScript } from 'bitcoinjs-lib/src/address';
 import { compactIdToOutpoint, outpointToCompactId } from './utils/atomical-format-helpers';
 import * as quotes from 'success-motivational-quotes';
 import * as chalk from 'chalk';
+import { decodeRuneId } from './utils/utils';
 
 dotenv.config();
 
@@ -1734,6 +1735,36 @@ program.command('mint-dft')
         satsbyte: parseInt(options.satsbyte, 10),
         disableMiningChalk: options.disablechalk,
       }, walletAddress, ticker, fundingRecord.WIF, options.current ? true : false);
+      handleResultLogging(result, true);
+    } catch (error) {
+      console.log(error);
+    }
+  });
+
+  program.command('mint-dft-rune')
+  .description('Mint coins for a decentralized fungible token (FT), also combines with one rune token')
+  .argument('<ticker>', 'string')
+  .argument('<runeid>', 'string')
+  .option('--rbf', 'Whether to enable RBF for transactions.')
+  .option('--initialowner <string>', 'Assign claimed tokens into this address')
+  .option('--funding <string>', 'Use wallet alias wif key to be used for funding and change')
+  .option('--current', 'Mine the current bitwork. If disabled mines the next.')
+  .option('--satsbyte <number>', 'Satoshis per byte in fees', '-1')
+  .option('--disablechalk', 'Whether to disable the real-time chalked logging of each hash for Bitwork mining. Improvements mining performance to set this flag')
+  .action(async (ticker, runeid, options) => {
+    try {
+      const walletInfo = await validateWalletStorage();
+      const config: ConfigurationInterface = validateCliInputs();
+      ticker = ticker.toLowerCase();
+      let{block, tx} = decodeRuneId(runeid);
+      const atomicals = new Atomicals(ElectrumApi.createClient(process.env.ELECTRUMX_PROXY_BASE_URL || ''));
+      let walletAddress = resolveAddress(walletInfo, options.initialowner, walletInfo.primary).address;
+      let fundingRecord = resolveWalletAliasNew(walletInfo, options.funding, walletInfo.funding);
+      const result: any = await atomicals.mintDftRuneInteractive({
+        rbf: options.rbf,
+        satsbyte: parseInt(options.satsbyte, 10),
+        disableMiningChalk: options.disablechalk,
+      }, walletAddress, ticker, fundingRecord.WIF, block, tx, options.current ? true : false);
       handleResultLogging(result, true);
     } catch (error) {
       console.log(error);
