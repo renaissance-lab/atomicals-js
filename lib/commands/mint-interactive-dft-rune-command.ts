@@ -152,7 +152,7 @@ export class MintInteractiveDftRuneCommand implements CommandInterface {
     // add rune mint output
     const blockBytes = leb128.unsigned.encode(this.blockNumber)
     const txBytes = leb128.unsigned.encode(this.txNumber)
-    const runeIdDataLen = blockBytes.length+ txBytes.length + 2
+    const runeIdDataLen = blockBytes.length+ txBytes.length + 2 + 2
     // 6a5d0814c0a23314161602
     const runePrefix = [0x6a, 0x5d, runeIdDataLen];
     const buffer = Buffer.from(runePrefix);
@@ -160,11 +160,11 @@ export class MintInteractiveDftRuneCommand implements CommandInterface {
     const combined1 = Buffer.concat([buffer, mintOp]);
     const combined2 = Buffer.concat([combined1, blockBytes]);
     const combined3 = Buffer.concat([combined2, mintOp]);
-    const combined = Buffer.concat([combined3, txBytes]);
-    atomicalBuilder.addOutput({
-      address: this.address,
-      value: 0
-    })
+    const combined4 = Buffer.concat([combined3, txBytes]);
+    const pointer =  Buffer.from([0x16, 0x00])
+    const combined = Buffer.concat([combined4, pointer]);
+    atomicalBuilder.setOpReturnOutput(combined)
+    
     const result = await atomicalBuilder.start(this.fundingWIF);
     return {
       success: true,
